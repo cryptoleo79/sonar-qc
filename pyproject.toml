@@ -26,8 +26,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/YOUR-GITHUB-HANDLE/sonar-qc"
-Source = "https://github.com/YOUR-GITHUB-HANDLE/sonar-qc"
+Homepage = "https://github.com/cryptoleo79/sonar-qc"
+Source = "https://github.com/cryptoleo79/sonar-qc"
 
 [project.scripts]
 sonar-qc = "sonar_qc.cli:main"

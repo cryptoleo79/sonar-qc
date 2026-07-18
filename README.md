@@ -116,4 +116,4 @@ as non-generated is the exact harm this tool exists to counter. See
 
 ## License & attribution
 
-MIT © 2026 Chris Ciari — GitHub: `YOUR-GITHUB-HANDLE` *(to fill in)*.
+MIT © 2026 Chris Ciari — GitHub: [`cryptoleo79`](https://github.com/cryptoleo79).

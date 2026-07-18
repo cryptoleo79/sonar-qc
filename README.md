@@ -1,6 +1,7 @@
 # sonar-qc
 
 [![CI](https://github.com/cryptoleo79/sonar-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/cryptoleo79/sonar-qc/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/cryptoleo79/sonar-qc)](https://github.com/cryptoleo79/sonar-qc/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 

@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Project infrastructure — no behavior changes.
+
+### Added
+- CI jobs: ruff lint and packaging check (`python -m build` + `twine check`)
+  alongside the 3.10/3.11/3.12 test matrix.
+- Ruff configuration in `pyproject.toml`; codebase lint-clean.
+- `CITATION.cff`, `SECURITY.md`, issue templates (bug / false-result /
+  feature), PR template, and Dependabot config. The calibration
+  (false-positive/negative) issue template asks for `--json` output — the data
+  recalibration actually needs.
+- README example section with real CLI output and the 4-panel report image.
+
+### Changed
+- Version is single-sourced from `sonar_qc.__version__`
+  (`dynamic = ["version"]` in `pyproject.toml`).
+- `report.generate()` accepts a `dpi` parameter (default unchanged).
+
 ## [0.2.0] — 2026-07-18
 
 Localization and signature hints: WHERE the fingerprint lives and WHAT KIND of

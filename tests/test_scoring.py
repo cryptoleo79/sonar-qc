@@ -1,5 +1,4 @@
 """Scoring tests — pure, no audio I/O. Feed a feature dict, inspect the score."""
-import math
 
 from sonar_qc import scoring as S
 

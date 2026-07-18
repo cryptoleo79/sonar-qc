@@ -63,6 +63,35 @@ sonar-qc track.mp3 --assume-lossy       # score without format-confounded bands
 **Exit codes** (so it can gate a submission pipeline):
 `0` LOW · `1` MEDIUM · `2` HIGH · `3` quality REJECT · `4` usage/error.
 
+## Example
+
+A synthetic test track — clean for its first half, hard-walled with a
+decorrelated HF bed for its second half (the classic splice case):
+
+```text
+LOW    half_and_half.wav   score 7
+  no obvious red flags — NOT a guarantee
+  evidence:
+    +7   HF L/R correlation 1.000 > 0.85 (synthetic tell)
+  where (frequency):
+    hf_stereo_corr: ≥14 kHz stereo field
+  consistent with (hints, not identification):
+    [weak] Native full-bandwidth PCM (no ceiling fingerprint)
+  ⚠ SEGMENT ESCALATION: file is LOW overall but a window reaches HIGH —
+    segment(s) score above the whole-file band; review the flagged windows
+  where (time): worst 10.0–15.0s (score 62 HIGH); 43% of windows ≥ MEDIUM
+       10.0–15.0   s  score 62  HIGH
+       12.5–17.5   s  score 62  HIGH
+       15.0–20.0   s  score 62  HIGH
+```
+
+The whole-file average masks the walled half (LOW overall) — the sliding
+windows and the escalation flag catch it. The `--report` PNG shows the same
+story visually: the suspicion timeline flips exactly where the spectrogram
+shows the wall appear.
+
+![Example report: spectrogram, LTAS, HF zoom, and suspicion-over-time](docs/img/example-report.png)
+
 ## What each feature measures
 
 | feature | measures | intuition |

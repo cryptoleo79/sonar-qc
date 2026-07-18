@@ -8,6 +8,6 @@ docs/LIMITATIONS.md for what that means in practice.
 
 __version__ = "0.2.0"
 
-from . import features, scoring, quality, signatures, localize  # noqa: F401
+from . import features, localize, quality, scoring, signatures  # noqa: F401
 
 __all__ = ["features", "scoring", "quality", "signatures", "localize", "__version__"]

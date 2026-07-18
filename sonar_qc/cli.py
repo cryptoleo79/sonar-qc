@@ -19,10 +19,10 @@ import sys
 
 from . import __version__
 from . import features as F
-from . import scoring as S
-from . import quality as Q
-from . import signatures as SIG
 from . import localize as L
+from . import quality as Q
+from . import scoring as S
+from . import signatures as SIG
 
 AUDIO_EXTS = {".wav", ".flac", ".aiff", ".aif", ".ogg", ".oga", ".opus",
               ".mp3", ".aac", ".m4a", ".wma"}
@@ -126,12 +126,14 @@ def _fmt_human(res):
                          f"({summ['windows']} windows of {summ['win_s']}s, mean {summ['mean_score']})")
         else:
             w = summ["worst"]
-            lines.append(f"  where (time): worst {w['start_s']}–{w['end_s']}s (score {w['score']} {w['band']}); "
+            lines.append(f"  where (time): worst {w['start_s']}–{w['end_s']}s "
+                         f"(score {w['score']} {w['band']}); "
                          f"{summ['medium_plus_fraction']:.0%} of windows ≥ MEDIUM")
             hot = sorted((x for x in loc["windows"] if x["score"] >= 25),
                          key=lambda x: -x["score"])[:3]
             for x in hot:
-                lines.append(f"    {x['start_s']:>7.1f}–{x['end_s']:<7.1f}s  score {x['score']:<3} {x['band']}")
+                lines.append(f"    {x['start_s']:>7.1f}–{x['end_s']:<7.1f}s  "
+                             f"score {x['score']:<3} {x['band']}")
     warns = [fl for fl in res["quality"]["flags"] if fl["severity"] == "warn"]
     if warns:
         lines.append("  quality notes:")
@@ -144,6 +146,11 @@ def _fmt_human(res):
                  f"hf_stereo_corr {feats['hf_stereo_corr']:.2f}, "
                  f"fake_24bit {feats['fake_24bit']}")
     return "\n".join(lines)
+
+
+def _round_or_blank(v, nd):
+    """CSV cell: rounded value, or blank when the feature is NaN."""
+    return round(v, nd) if v == v else ""
 
 
 def _csv_rows(results):
@@ -161,10 +168,10 @@ def _csv_rows(results):
             worst_s = f"{worst['start_s']}-{worst['end_s']}s@{worst['score']}" if worst else ""
             rows.append([res["file"], "ok", sc["band"], sc["score"], res.get("assume_lossy"),
                          res.get("lossy_source"), f["ceiling_hz"], round(f["ceiling_ratio"], 4),
-                         round(f["rolloff_db_per_khz"], 3) if f["rolloff_db_per_khz"] == f["rolloff_db_per_khz"] else "",
-                         round(f["hf_music_corr"], 4) if f["hf_music_corr"] == f["hf_music_corr"] else "",
-                         round(f["hf_stereo_corr"], 4) if f["hf_stereo_corr"] == f["hf_stereo_corr"] else "",
-                         round(f["above_ceiling_level_db"], 2) if f["above_ceiling_level_db"] == f["above_ceiling_level_db"] else "",
+                         _round_or_blank(f["rolloff_db_per_khz"], 3),
+                         _round_or_blank(f["hf_music_corr"], 4),
+                         _round_or_blank(f["hf_stereo_corr"], 4),
+                         _round_or_blank(f["above_ceiling_level_db"], 2),
                          f["fake_24bit"], f["sr"], round(f["duration_s"], 3), f["subtype"],
                          f["channels"], res["quality"]["reject"], sig_ids, worst_s, ""])
         elif res["kind"] == "reject":

@@ -7,20 +7,19 @@ from __future__ import annotations
 
 import os
 
+import matplotlib
 import numpy as np
 import soundfile as sf
-import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from . import features as F  # noqa: E402
 
-
 BAND_COLOR = {"HIGH": "#d62728", "MEDIUM": "#ff7f0e", "LOW": "#2ca02c"}
 
 
-def generate(path, feats, score_result, out_dir, localization=None):
+def generate(path, feats, score_result, out_dir, localization=None, dpi=110):
     """Write ``<stem>_sonar-qc.png`` into ``out_dir``. Returns the PNG path.
 
     With ``localization`` (from localize.analyze), adds a suspicion-over-time
@@ -99,6 +98,6 @@ def generate(path, feats, score_result, out_dir, localization=None):
 
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     out_path = os.path.join(out_dir, f"{stem}_sonar-qc.png")
-    fig.savefig(out_path, dpi=110)
+    fig.savefig(out_path, dpi=dpi)
     plt.close(fig)
     return out_path

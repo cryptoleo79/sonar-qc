@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use sonar-qc in research or reporting, please cite it as below."
+title: "sonar-qc: audio provenance & quality screening for music submissions"
+type: software
+authors:
+  - family-names: Ciari
+    given-names: Chris
+repository-code: "https://github.com/cryptoleo79/sonar-qc"
+license: MIT
+version: 0.2.0
+date-released: 2026-07-18
+abstract: >-
+  A spectral provenance and quality screener. It measures acoustic traits of an
+  audio file (bandwidth ceiling, HF rolloff, HF-vs-music envelope correlation,
+  bit-depth padding, stereo HF coherence) and reports a calibrated suspicion
+  score with the evidence behind it, localized in time and frequency. It is a
+  disclosure aid, not a detector of record: it cannot prove a track is or is not
+  generatively produced.
+keywords:
+  - audio-analysis
+  - provenance
+  - generative-audio
+  - music-information-retrieval
+  - quality-control

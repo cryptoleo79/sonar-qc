@@ -8,12 +8,12 @@ documented in docs/METHODOLOGY.md.
 """
 from __future__ import annotations
 
-import os
 import math
+import os
 
 import numpy as np
 import soundfile as sf
-from scipy.signal import welch, butter, sosfiltfilt
+from scipy.signal import butter, sosfiltfilt, welch
 from scipy.stats import pearsonr
 
 # --- analysis constants (see docs/METHODOLOGY.md) ---------------------------

@@ -9,8 +9,8 @@ import soundfile as sf
 from scipy.signal import butter, sosfiltfilt
 
 from sonar_qc import features as F
-from sonar_qc import scoring as S
 from sonar_qc import quality as Q
+from sonar_qc import scoring as S
 
 SR = 44100
 
@@ -34,7 +34,7 @@ def make_low(path):
     env = _env(t)
     rng = np.random.default_rng(0)
     chans = []
-    for k in range(2):
+    for _k in range(2):
         noise = rng.standard_normal(len(t))                 # flat to Nyquist
         tones = 0.3 * np.sin(2 * np.pi * 440 * t) + 0.2 * np.sin(2 * np.pi * 1200 * t)
         chans.append((0.5 * noise + tones) * env)           # everything shares env

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sonar-qc"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Audio provenance & quality screening for music submissions"
 readme = "README.md"
 license = { text = "MIT" }
@@ -34,3 +34,17 @@ sonar-qc = "sonar_qc.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["sonar_qc*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sonar_qc.__version__" }
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E402"]  # report.py must set the matplotlib backend before importing pyplot
+
+[tool.ruff.lint.isort]
+known-first-party = ["sonar_qc"]

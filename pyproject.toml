@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sonar-qc"
+version = "0.1.0"
+description = "Audio provenance & quality screening for music submissions"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Chris Ciari" }]
+keywords = ["audio", "provenance", "quality-control", "generative-audio", "disclosure", "screening"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "soundfile>=0.11",
+    "matplotlib>=3.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR-GITHUB-HANDLE/sonar-qc"
+Source = "https://github.com/YOUR-GITHUB-HANDLE/sonar-qc"
+
+[project.scripts]
+sonar-qc = "sonar_qc.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sonar_qc*"]

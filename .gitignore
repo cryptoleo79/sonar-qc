@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Audio — never commit real music (copyright + repo size)
+*.wav
+*.flac
+*.aif
+*.aiff
+*.mp3
+*.aac
+*.m4a
+*.ogg
+*.oga
+*.opus
+*.wma
+
+# Generated reports
+reports/
+
+# OS / editor
+.DS_Store
+*.swp

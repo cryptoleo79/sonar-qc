@@ -1,5 +1,9 @@
 # sonar-qc
 
+[![CI](https://github.com/cryptoleo79/sonar-qc/actions/workflows/ci.yml/badge.svg)](https://github.com/cryptoleo79/sonar-qc/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+
 **Audio provenance & quality screening for music submissions.**
 
 sonar-qc measures acoustic traits of an audio file and reports a calibrated
@@ -27,12 +31,23 @@ credibility; overclaiming destroys it.
 
 ## Install
 
+Straight from GitHub:
+
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e .          # or: pip install -r requirements.txt
+pip install git+https://github.com/cryptoleo79/sonar-qc.git
 ```
 
-Python 3.10+. Depends only on numpy, scipy, soundfile, and matplotlib.
+Or from a clone (for development):
+
+```bash
+git clone https://github.com/cryptoleo79/sonar-qc.git
+cd sonar-qc
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+```
+
+Python 3.10+. Depends only on numpy, scipy, soundfile, and matplotlib. Both
+`sonar-qc <file>` and `python -m sonar_qc <file>` work.
 
 ## Quickstart
 
@@ -114,6 +129,18 @@ removing fingerprints. Stripping provenance from generated audio to pass it off
 as non-generated is the exact harm this tool exists to counter. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Development
+
+```bash
+pip install -e . pytest
+pytest -q          # run the test suite (synthetic fixtures, no audio committed)
+```
+
+Contributions are welcome within the scope in [CONTRIBUTING.md](CONTRIBUTING.md);
+CI runs the suite on Python 3.10–3.12. See [CHANGELOG.md](CHANGELOG.md) for
+release history.
+
 ## License & attribution
 
 MIT © 2026 Chris Ciari — GitHub: [`cryptoleo79`](https://github.com/cryptoleo79).
+See [LICENSE](LICENSE).

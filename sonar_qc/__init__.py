@@ -6,8 +6,8 @@ that a track is or is not generatively produced. See the README and
 docs/LIMITATIONS.md for what that means in practice.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
-from . import features, scoring, quality  # noqa: F401
+from . import features, scoring, quality, signatures, localize  # noqa: F401
 
-__all__ = ["features", "scoring", "quality", "__version__"]
+__all__ = ["features", "scoring", "quality", "signatures", "localize", "__version__"]

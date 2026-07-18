@@ -62,6 +62,43 @@ dither/noise floor (some energy) from digital silence (none) above the ceiling.
 
 `sr`, `duration_s`, `subtype`, `channels` are attached for reporting and CSV.
 
+## Localization (`localize.py`)
+
+`--segments` re-scores the track in **5 s windows, 2.5 s hop**, using the same
+weights as the whole file, so a window's number means the same thing as a
+file's number. Files shorter than one window fall back to a single whole-file
+window. The summary names the worst window, the fraction of windows ≥ MEDIUM,
+and whether the profile is uniform.
+
+**Why this matters — the splice case.** The whole-file Welch PSD averages all
+material together: a track that is clean for half its length and hard-walled
+for the other half can read as full-bandwidth overall and score LOW, while
+every window in the walled half scores HIGH. `escalation()` detects exactly
+this (worst-window band > file band) and flags it. Exit codes remain tied to
+the whole-file band — the flag informs; it does not silently change gating.
+
+Each scoring factor is also mapped to the frequency region its evidence lives
+in (`frequency_evidence`), so "where" has both a time answer and a band answer.
+
+## Signature hints (`signatures.py`)
+
+Measured features are compared against a visible table of profiles — named
+feature-range sets tied to known rendering/encoding families: generative-render
+patterns (hard ceiling + coherent or decorrelated HF), codec psychoacoustic
+ceilings (~128 kbps class, high-bitrate class), the padded-24-bit export tell,
+and native full-bandwidth PCM.
+
+The framing rules are part of the module contract, enforced by tests:
+
+- a match means the measurements are **consistent with** that family — it is
+  never an identification of a specific product;
+- confidence is capped at **indicative**; profiles calibrated on the project's
+  small informal validation set say so in their notes;
+- codec profiles describe the **encoder**, which says nothing about how the
+  underlying music was made (see LIMITATIONS.md — this is the primary
+  false-positive path);
+- an empty match list is information, not exoneration.
+
 ## Robustness
 
 Filters are skipped (feature → NaN) when the signal is shorter than the filter's

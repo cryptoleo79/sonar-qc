@@ -185,9 +185,16 @@ def above_ceiling_level_db(f, db, ceil_hz, sr):
 
 
 # --- top level --------------------------------------------------------------
-def extract(path):
-    """Extract every provenance feature. Returns a plain dict (JSON-friendly)."""
-    data, mono, sr, info = _load(path)
+def extract_from_array(data, sr):
+    """Extract the signal-derived features from an in-memory (n, ch) array.
+
+    Everything except fake_24bit (which needs the container) — this is what
+    windowed localization reuses on slices of the file.
+    """
+    data = np.atleast_2d(np.asarray(data, dtype=np.float64))
+    if data.shape[0] < data.shape[1]:
+        data = data.T
+    mono = data.mean(axis=1)
     f, db = welch_db(mono, sr)
     ceil_hz, ceil_ratio = ceiling(f, db, sr)
     return {
@@ -195,11 +202,18 @@ def extract(path):
         "ceiling_ratio": ceil_ratio,
         "rolloff_db_per_khz": rolloff_db_per_khz(f, db),
         "hf_music_corr": hf_music_corr(mono, sr),
-        "fake_24bit": fake_24bit(path, info),
         "hf_stereo_corr": hf_stereo_corr(data, sr),
         "above_ceiling_level_db": above_ceiling_level_db(f, db, ceil_hz, sr),
         "sr": int(sr),
         "duration_s": float(len(mono) / sr) if sr else 0.0,
-        "subtype": info.subtype,
         "channels": int(data.shape[1]),
     }
+
+
+def extract(path):
+    """Extract every provenance feature. Returns a plain dict (JSON-friendly)."""
+    data, mono, sr, info = _load(path)
+    feats = extract_from_array(data, sr)
+    feats["fake_24bit"] = fake_24bit(path, info)
+    feats["subtype"] = info.subtype
+    return feats

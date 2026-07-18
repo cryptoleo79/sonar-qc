@@ -55,7 +55,8 @@ Python 3.10+. Depends only on numpy, scipy, soundfile, and matplotlib. Both
 sonar-qc track.wav                      # human-readable, evidence listed
 sonar-qc track.wav --json               # machine-readable for pipelines
 sonar-qc ./folder --batch --csv out.csv # screen a directory to CSV
-sonar-qc track.wav --report ./reports   # PNG: spectrogram + LTAS + HF zoom
+sonar-qc track.wav --report ./reports   # PNG: spectrogram + LTAS + HF zoom (+timeline)
+sonar-qc track.wav --segments           # localize artifacts in time
 sonar-qc track.mp3 --assume-lossy       # score without format-confounded bands
 ```
 
@@ -74,6 +75,29 @@ sonar-qc track.mp3 --assume-lossy       # score without format-confounded bands
 | `above_ceiling_level_db` | energy above the ceiling | real noise floor vs digital silence |
 
 Full definitions and rationale: [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
+
+## Where and what-kind (localization & signature hints)
+
+Beyond the whole-file score, sonar-qc reports:
+
+- **Where in frequency** — each contributing factor is mapped to the band its
+  evidence lives in (e.g. `hf_music_corr` → ≥14 kHz vs the 200 Hz–8 kHz music
+  band), shown in the output and the report's HF panels.
+- **Where in time** (`--segments`) — the track is re-scored in 5 s sliding
+  windows with the same weights, so a reviewer can jump straight to the worst
+  segment. The `--report` PNG gains a suspicion-over-time strip aligned with
+  the spectrogram.
+- **Segment escalation** — a track that is only *partly* generative can score
+  LOW overall because the file-wide average masks the walled segment. When a
+  window's band exceeds the file's band, the output flags it explicitly
+  (`escalation` in JSON). Exit codes stay tied to the whole-file band; the flag
+  is there so pipelines and reviewers can act on it deliberately.
+- **What kind of pipeline** — measured features are matched against a visible
+  table of known rendering/encoding families (`sonar_qc/signatures.py`):
+  generative-render patterns, codec psychoacoustic ceilings, export-pipeline
+  tells. **Hints are "consistent with," never identification** — confidence is
+  capped at *indicative*, every hint carries its evidence, and codec matches
+  describe the encoder, not how the music was made.
 
 ## Validation
 

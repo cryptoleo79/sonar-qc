@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sonar-qc"
-version = "0.1.0"
+version = "0.2.0"
 description = "Audio provenance & quality screening for music submissions"
 readme = "README.md"
 license = { text = "MIT" }

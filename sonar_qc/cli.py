@@ -3,7 +3,8 @@
     sonar-qc track.wav                     human-readable, evidence listed
     sonar-qc track.wav --json              machine-readable
     sonar-qc ./folder --batch --csv out.csv
-    sonar-qc track.wav --report ./reports  PNG: spectrogram + LTAS + HF zoom
+    sonar-qc track.wav --report ./reports  PNG: spectrogram + LTAS + HF zoom (+timeline)
+    sonar-qc track.wav --segments          localize artifacts in time
     sonar-qc track.mp3 --assume-lossy      score without format-confounded bands
 
 Exit codes (usable as a submission gate):
@@ -20,6 +21,8 @@ from . import __version__
 from . import features as F
 from . import scoring as S
 from . import quality as Q
+from . import signatures as SIG
+from . import localize as L
 
 AUDIO_EXTS = {".wav", ".flac", ".aiff", ".aif", ".ogg", ".oga", ".opus",
               ".mp3", ".aac", ".m4a", ".wma"}
@@ -28,7 +31,7 @@ EXIT_LOW, EXIT_MEDIUM, EXIT_HIGH, EXIT_REJECT, EXIT_ERROR = 0, 1, 2, 3, 4
 _BAND_EXIT = {"LOW": EXIT_LOW, "MEDIUM": EXIT_MEDIUM, "HIGH": EXIT_HIGH}
 
 
-def _analyze_one(path, assume_lossy=False):
+def _analyze_one(path, assume_lossy=False, segments=False):
     """Return a result dict for one file. ``kind`` is 'reject', 'ok', or 'error'."""
     try:
         qc = Q.check(path)
@@ -41,7 +44,7 @@ def _analyze_one(path, assume_lossy=False):
     feats = F.extract(path)
     lossy = F.is_lossy(path, F_info(path))
     result = S.score(feats, assume_lossy=assume_lossy)
-    return {
+    res = {
         "file": path,
         "kind": "ok",
         "quality": qc,
@@ -49,7 +52,19 @@ def _analyze_one(path, assume_lossy=False):
         "score": result,
         "lossy_source": lossy,
         "assume_lossy": assume_lossy,
+        # WHAT the evidence is consistent with (hints, never identification)
+        "signatures": SIG.match(feats),
+        # WHERE in frequency each contributing factor's evidence lives
+        "frequency_evidence": L.frequency_evidence(result),
     }
+    if segments:
+        # WHERE in time — sliding-window scores with the same weights
+        try:
+            res["localization"] = L.analyze(path, assume_lossy=assume_lossy)
+            res["escalation"] = L.escalation(result, res["localization"])
+        except Exception as exc:  # localization must never break the screen
+            res["localization_error"] = f"{type(exc).__name__}: {exc}"
+    return res
 
 
 def F_info(path):
@@ -88,6 +103,35 @@ def _fmt_human(res):
             lines.append(f"    +{r['points']:<3} {r['detail']}")
     else:
         lines.append("  evidence: none — no measured red flags")
+    freq_ev = res.get("frequency_evidence") or []
+    if freq_ev:
+        lines.append("  where (frequency):")
+        for fe in freq_ev:
+            lines.append(f"    {fe['factor']}: {fe['frequency_region']}")
+    sigs = res.get("signatures") or []
+    if sigs:
+        lines.append("  consistent with (hints, not identification):")
+        for s in sigs:
+            lines.append(f"    [{s['confidence']}] {s['label']}")
+            lines.append(f"        {s['note']}")
+    esc = res.get("escalation")
+    if esc and esc["escalated"]:
+        lines.append(f"  ⚠ SEGMENT ESCALATION: file is {esc['file_band']} overall but a window "
+                     f"reaches {esc['worst_window_band']} — {esc['note']}")
+    loc = res.get("localization")
+    if loc:
+        summ = loc["summary"]
+        if summ["uniform"]:
+            lines.append(f"  where (time): uniform across the track "
+                         f"({summ['windows']} windows of {summ['win_s']}s, mean {summ['mean_score']})")
+        else:
+            w = summ["worst"]
+            lines.append(f"  where (time): worst {w['start_s']}–{w['end_s']}s (score {w['score']} {w['band']}); "
+                         f"{summ['medium_plus_fraction']:.0%} of windows ≥ MEDIUM")
+            hot = sorted((x for x in loc["windows"] if x["score"] >= 25),
+                         key=lambda x: -x["score"])[:3]
+            for x in hot:
+                lines.append(f"    {x['start_s']:>7.1f}–{x['end_s']:<7.1f}s  score {x['score']:<3} {x['band']}")
     warns = [fl for fl in res["quality"]["flags"] if fl["severity"] == "warn"]
     if warns:
         lines.append("  quality notes:")
@@ -106,11 +150,15 @@ def _csv_rows(results):
     header = ["file", "kind", "band", "score", "assume_lossy", "lossy_source",
               "ceiling_hz", "ceiling_ratio", "rolloff_db_per_khz", "hf_music_corr",
               "hf_stereo_corr", "above_ceiling_level_db", "fake_24bit",
-              "sr", "duration_s", "subtype", "channels", "quality_reject", "note"]
+              "sr", "duration_s", "subtype", "channels", "quality_reject",
+              "signature_hints", "worst_window", "note"]
     rows = [header]
     for res in results:
         if res["kind"] == "ok":
             f, sc = res["features"], res["score"]
+            sig_ids = ";".join(s["id"] for s in res.get("signatures", []))
+            worst = (res.get("localization") or {}).get("summary", {}).get("worst")
+            worst_s = f"{worst['start_s']}-{worst['end_s']}s@{worst['score']}" if worst else ""
             rows.append([res["file"], "ok", sc["band"], sc["score"], res.get("assume_lossy"),
                          res.get("lossy_source"), f["ceiling_hz"], round(f["ceiling_ratio"], 4),
                          round(f["rolloff_db_per_khz"], 3) if f["rolloff_db_per_khz"] == f["rolloff_db_per_khz"] else "",
@@ -118,14 +166,14 @@ def _csv_rows(results):
                          round(f["hf_stereo_corr"], 4) if f["hf_stereo_corr"] == f["hf_stereo_corr"] else "",
                          round(f["above_ceiling_level_db"], 2) if f["above_ceiling_level_db"] == f["above_ceiling_level_db"] else "",
                          f["fake_24bit"], f["sr"], round(f["duration_s"], 3), f["subtype"],
-                         f["channels"], res["quality"]["reject"], ""])
+                         f["channels"], res["quality"]["reject"], sig_ids, worst_s, ""])
         elif res["kind"] == "reject":
             note = ";".join(fl["code"] for fl in res["quality"]["flags"] if fl["severity"] == "reject")
             rows.append([res["file"], "reject", "", "", "", "", "", "", "", "", "", "", "",
-                         "", "", "", "", True, note])
+                         "", "", "", "", True, "", "", note])
         else:
             rows.append([res["file"], "error", "", "", "", "", "", "", "", "", "", "", "",
-                         "", "", "", "", "", res.get("error", "")])
+                         "", "", "", "", "", "", "", res.get("error", "")])
     return rows
 
 
@@ -164,6 +212,8 @@ def build_parser():
     p.add_argument("--report", metavar="DIR", help="write a PNG report per file into DIR")
     p.add_argument("--assume-lossy", action="store_true",
                    help="score without the format-confounded bandwidth features")
+    p.add_argument("--segments", action="store_true",
+                   help="localize artifacts in time (sliding-window scores)")
     p.add_argument("--version", action="version", version=f"sonar-qc {__version__}")
     return p
 
@@ -185,14 +235,16 @@ def main(argv=None):
             return EXIT_ERROR
         targets = [args.path]
 
-    results = [_analyze_one(t, assume_lossy=args.assume_lossy) for t in targets]
+    results = [_analyze_one(t, assume_lossy=args.assume_lossy, segments=args.segments)
+               for t in targets]
 
     if args.report:
         from . import report as R
         for res in results:
             if res["kind"] == "ok":
                 try:
-                    png = R.generate(res["file"], res["features"], res["score"], args.report)
+                    png = R.generate(res["file"], res["features"], res["score"], args.report,
+                                     localization=res.get("localization"))
                     res["report_png"] = png
                 except Exception as exc:  # reporting must never break analysis
                     res["report_error"] = f"{type(exc).__name__}: {exc}"
